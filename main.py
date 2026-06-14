@@ -7,6 +7,12 @@ pygame.init()
 
 game_state = "playing"
 current_level = 1
+lives = 3
+just_died = False
+invincible_timer = 0
+can_be_hit = True
+player_state = "alive"
+respawn_timer = 0
 
 # ----------------- تنظیمات -----------------
 WIDTH, HEIGHT = 800, 600
@@ -96,14 +102,10 @@ def spawn_ghost():
         return {
             "cell_x": cell_x,
             "cell_y": cell_y,
-
             "x": x,
             "y": y,
-
             "path": [],
-
             "moving": False,
-
             "target_x": x,
             "target_y": y
         }
@@ -112,8 +114,6 @@ ghosts = []
 
 for _ in range(3):
     g = spawn_ghost()
-    g["target"] = None
-    g["cooldown"] = 0
     ghosts.append(g)
 
 # ----------------- movement -----------------
@@ -302,76 +302,54 @@ for y in range(rows):
 score = 0
 font = pygame.font.SysFont(None, 36)
 
-def reset_game():
-    global player_x, player_y
-    global dots
-    global ghosts
-    global score
-    global game_state
-    global current_level
-    
-    # اسپاون پلیر
+def reset_game(full_reset=False):
+    global player_x, player_y, dots, ghosts
+    global lives, current_level, game_state
+    global player_state, respawn_timer, score
+
+    if full_reset:
+        lives = 3
+        current_level = 1
+        score = 0
+
+    game_state = "playing"
+    player_state = "alive"
+    respawn_timer = 0
+
     while True:
         player_x = random.randint(0, WIDTH - player_size)
         player_y = random.randint(0, HEIGHT - player_size)
-
         if is_valid_spawn(player_x, player_y):
             break
 
-    # اسپاون روح‌ها
     ghosts = [
         spawn_ghost()
-        for _ in range(
-            levels[current_level]["ghost_count"]
-        )
+        for _ in range(levels[current_level]["ghost_count"])
     ]
 
-    # جلوگیری از اسپاون روی پلیر
-    player_rect = pygame.Rect(
-        player_x,
-        player_y,
-        player_size,
-        player_size
-    )
-
-    for g in ghosts:
-        while pygame.Rect(
-            g["x"],
-            g["y"],
-            ghost_size,
-            ghost_size
-        ).colliderect(player_rect):
-
-            new_g = spawn_ghost()
-
-            g["x"] = new_g["x"]
-            g["y"] = new_g["y"]
-            g["dir"] = new_g["dir"]
-            g["timer"] = new_g["timer"]
-
-    # ساخت دوباره دونه‌ها
-    dots = []
-
-    for y in range(rows):
-        for x in range(cols):
-            if map_data[y][x] == "0":
-                dots.append(
-                    pygame.Rect(
-                        x * tile + tile // 2,
-                        y * tile + tile // 2,
-                        5,
-                        5
-                    )
-                )
-
-    score = 0
-    game_state = "playing"
+    dots = [
+        pygame.Rect(
+            x * tile + tile//2,
+            y * tile + tile//2,
+            5, 5
+        )
+        for y in range(rows)
+        for x in range(cols)
+        if map_data[y][x] == "0"
+    ]
 
 # ----------------- game loop -----------------
 running = True
 reset_game()
 
 while running:
+
+    if player_state == "respawning":
+        respawn_timer -= 1
+
+        if respawn_timer <= 0:
+            reset_game()
+            player_state = "alive"
 
     for event in pygame.event.get():
 
@@ -381,7 +359,7 @@ while running:
         if event.type == pygame.KEYDOWN:
 
             if event.key == pygame.K_r:
-                reset_game()
+                reset_game(full_reset=True)
 
     if game_state != "playing":
         screen.fill((0, 0, 0))
@@ -440,10 +418,19 @@ while running:
     pygame.draw.rect(screen, (255, 255, 0), (player_x, player_y, player_size, player_size))
 
     # collision
-    for g in ghosts:
-        if player_rect.colliderect(pygame.Rect(g["x"], g["y"], ghost_size, ghost_size)):
-            print("YOU DIED")
-            game_state = "lose"
+    if player_state == "alive":
+        for g in ghosts:
+            if player_rect.colliderect(pygame.Rect(g["x"], g["y"], ghost_size, ghost_size)):
+                lives -= 1
+
+                if lives <= 0:
+                    game_state = "lose"
+                    player_state = "dead"
+                else:
+                    player_state = "respawning"
+                    respawn_timer = 60
+
+                break
 
     if len(dots) == 0:
 
@@ -459,6 +446,34 @@ while running:
 
     text = font.render(f"Score: {score}", True, (255, 255, 255))
     screen.blit(text, (10, 10))
+
+    level_text = font.render(
+        f"Level: {current_level}",
+        True,
+        (255, 255, 255)
+    )
+
+    screen.blit(
+        level_text,
+        (
+            WIDTH // 2 - level_text.get_width() // 2,
+            10
+        )
+    )
+
+    lives_text = font.render(
+        f"Lives: {lives}",
+        True,
+        (255, 255, 255)
+    )
+
+    screen.blit(
+        lives_text,
+        (
+            WIDTH - lives_text.get_width() - 10,
+            10
+        )
+    )
 
     pygame.display.flip()
     clock.tick(60)
