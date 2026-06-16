@@ -3,17 +3,51 @@ import pygame
 import sys
 import random
 from collections import deque
+from assets.maps import maps
 
 pygame.init()
-
+pygame.mixer.init()
 SCORE_FILE = "assets/highscore.txt"
 
-game_state = "playing"
+font = pygame.font.SysFont(None, 36)
+big_font = pygame.font.SysFont(None, 60)
+
+eat_sound = pygame.mixer.Sound(
+    "assets/sounds/eat.wav"
+)
+
+respawn_sound = pygame.mixer.Sound(
+    "assets/sounds/respawn.wav"
+)
+
+gameover_sound = pygame.mixer.Sound(
+    "assets/sounds/gameover.wav"
+)
+
+levelup_sound = pygame.mixer.Sound(
+    "assets/sounds/levelup.wav"
+)
+
+menu_sound = pygame.mixer.Sound(
+    "assets/sounds/menu.wav"
+)
+
+win_sound = pygame.mixer.Sound(
+    "assets/sounds/win.wav"
+)
+
+upgrade_sound = pygame.mixer.Sound(
+    "assets/sounds/upgrade.wav"
+)
+
+game_state = "menu"
 current_level = 1
 lives = 3
 player_state = "alive"
 respawn_timer = 0
 level_complete_timer = 0
+menu_started = False
+map_data = maps[current_level - 1]
 
 # ----------------- تنظیمات -----------------
 WIDTH, HEIGHT = 800, 600
@@ -41,33 +75,23 @@ levels = {
 }
 
 # ----------------- map -----------------
-map_data = [
-"11111111111111111111",
-"10000000000000000001",
-"10111101111101111101",
-"10000100010001000001",
-"10110111010111011101",
-"10000100010001000001",
-"10111101111101111101",
-"10000000000000000001",
-"10111101111101111101",
-"10000100010001000001",
-"10110111010111011101",
-"10000100010001000001",
-"10111101111101111101",
-"10000000000000000001",
-"11111111111111111111",
-]
 
 rows = len(map_data)
 cols = len(map_data[0])
 
 # ----------------- walls -----------------
+
 walls = []
+dots = []
+
+walls.clear()
+
 for y, row in enumerate(map_data):
     for x, cell in enumerate(row):
         if cell == "1":
-            walls.append(pygame.Rect(x * tile, y * tile, tile, tile))
+            walls.append(
+                pygame.Rect(x * tile, y * tile, tile, tile)
+            )
 
 # ----------------- player -----------------
 player_size = 33
@@ -356,7 +380,8 @@ def move_ghosts():
         g["moving"] = True
 
 # ----------------- dots -----------------
-dots = []
+dots.clear()
+
 for y in range(rows):
     for x in range(cols):
         if map_data[y][x] == "0":
@@ -398,7 +423,7 @@ def load_highscore():
 def save_highscore(score):
 
     os.makedirs("assets", exist_ok=True)
-    
+
     current_highscore = load_highscore()
 
     if score > current_highscore:
@@ -409,10 +434,11 @@ def save_highscore(score):
 highscore = load_highscore()
 
 def reset_game(full_reset=False):
-    global player_x, player_y, dots, ghosts
+    global player_x, player_y, ghosts, dots, walls
     global lives, current_level, game_state
-    global player_state, respawn_timer, score   
-    global level_complete_timer
+    global player_state, respawn_timer, score
+    global map_data, rows, cols
+    global menu_music_played
 
     if full_reset:
         lives = 3
@@ -422,32 +448,51 @@ def reset_game(full_reset=False):
     game_state = "playing"
     player_state = "alive"
     respawn_timer = 0
+    menu_music_played = False
 
+    # MAP UPDATE (مهم‌ترین خط)
+    map_data = maps[current_level - 1]
+
+    rows = len(map_data)
+    cols = len(map_data[0])
+
+    # rebuild walls
+    walls.clear()
+    for y, row in enumerate(map_data):
+        for x, cell in enumerate(row):
+            if cell == "1":
+                walls.append(
+                    pygame.Rect(x * tile, y * tile, tile, tile)
+                )
+
+    # rebuild dots
+    dots.clear()
+    for y in range(rows):
+        for x in range(cols):
+            if map_data[y][x] == "0":
+                dots.append(
+                    pygame.Rect(
+                        x * tile + tile//2,
+                        y * tile + tile//2,
+                        5, 5
+                    )
+                )
+
+    # 👾 spawn player
     while True:
         player_x = random.randint(0, WIDTH - player_size)
         player_y = random.randint(0, HEIGHT - player_size)
         if is_valid_spawn(player_x, player_y):
             break
 
+    # spawn ghosts
     ghosts = [
         spawn_ghost()
         for _ in range(levels[current_level]["ghost_count"])
     ]
 
-    dots = [
-        pygame.Rect(
-            x * tile + tile//2,
-            y * tile + tile//2,
-            5, 5
-        )
-        for y in range(rows)
-        for x in range(cols)
-        if map_data[y][x] == "0"
-    ]
-
 # ----------------- game loop -----------------
 running = True
-reset_game()
 
 while running:
 
@@ -465,8 +510,90 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
+            if game_state == "menu":
+
+                if event.key == pygame.K_SPACE:
+
+                    menu_sound.stop()
+
+                    menu_started = False
+
+                    reset_game()
+
             if event.key == pygame.K_r:
                 reset_game(full_reset=True)
+
+    if game_state == "menu":
+
+        if not menu_started:
+
+            menu_sound.play(-1)
+
+            menu_started = True
+
+        screen.fill((0, 0, 0))
+
+        title_text = big_font.render(
+            "PACMAN",
+            True,
+            (255, 255, 0)
+        )
+
+        start_text = font.render(
+            "Press SPACE To Start",
+            True,
+            (255, 255, 255)
+        )
+
+        author_text = font.render(
+            "Made By Mahdi Farahani",
+            True,
+            (150, 150, 150)
+        )
+
+        thanks_text = font.render(
+            "Thanks For Playing This :)",
+            True,
+            (150, 150, 150)
+        )
+
+        screen.blit(
+            title_text,
+            (
+                WIDTH // 2 - title_text.get_width() // 2,
+                HEIGHT // 3
+            )
+        )
+
+        screen.blit(
+            start_text,
+            (
+                WIDTH // 2 - start_text.get_width() // 2,
+                HEIGHT // 2
+            )
+        )
+
+        screen.blit(
+            author_text,
+            (
+                WIDTH - author_text.get_width() - 20,
+                HEIGHT - 60
+            )
+        )
+
+        screen.blit(
+            thanks_text,
+            (
+                WIDTH - thanks_text.get_width() - 20,
+                HEIGHT - 30
+            )
+        )
+
+        pygame.display.flip()
+
+        clock.tick(60)
+
+        continue
 
     if game_state == "level_complete":
 
@@ -527,6 +654,11 @@ while running:
 
     if game_state != "playing":
         screen.fill((0, 0, 0))
+
+        if not menu_music_played:
+
+            menu_sound.play()
+            menu_music_played = True
 
         text = font.render(
             "YOU WIN" if game_state == "win" else "YOU DIED",
@@ -597,7 +729,7 @@ while running:
         if player_rect.colliderect(d):
             dots.remove(d)
             score += 1
-
+            eat_sound.play()
     
     move_ghosts()
 
@@ -625,11 +757,12 @@ while running:
 
                     save_highscore(score)
                     highscore = load_highscore()
-
+                    gameover_sound.play()
                     game_state = "lose"
                     player_state = "dead"
                 
                 else:
+                    respawn_sound.play()
                     player_state = "respawning"
                     respawn_timer = 60
 
@@ -641,12 +774,13 @@ while running:
 
             game_state = "level_complete"
             level_complete_timer = 180   # 3 ثانیه در 60 FPS
+            levelup_sound.play()
 
         else:
 
             save_highscore(score)
             highscore = load_highscore()
-
+            win_sound.play()
             game_state = "win"
 
     text = font.render(f"Score: {score}", True, (255, 255, 255))
