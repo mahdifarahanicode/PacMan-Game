@@ -11,6 +11,10 @@ from game.engine import reset_game
 import game.player as player
 import game.pathfinding as pathfinding
 import screens.menu as menu
+import screens.level_complete as level_complete
+import screens.gameover as gameover
+import screens.hud as hud
+
 from game.ghosts import spawn_ghost, move_ghosts
 import core.config as config
 from core.levels import *
@@ -119,137 +123,42 @@ while running:
             if state.game_state == "menu":
 
                 if event.key == pygame.K_SPACE:
-
                     sounds.menu_sound.stop()
-
                     menu_started = False
-
                     state.game_state = "playing"
-
                     reset_game(current_level)
 
             if event.key == pygame.K_r:
-
                 state.game_state = "playing"
-
                 reset_game(current_level, full_reset=True)
 
     if state.game_state == "menu":
 
         if not menu_started:
-
             sounds.menu_sound.play(-1)
-
             menu_started = True
 
-        screen.fill((0, 0, 0))
-
-        title_text = big_font.render(
-            "PACMAN",
-            True,
-            (255, 255, 0)
-        )
-
-        start_text = font.render(
-            "Press SPACE To Start",
-            True,
-            (255, 255, 255)
-        )
-
-        author_text = font.render(
-            "Made By Mahdi Farahani",
-            True,
-            (150, 150, 150)
-        )
-
-        thanks_text = font.render(
-            "Thanks For Playing This :)",
-            True,
-            (150, 150, 150)
-        )
-
-        screen.blit(
-            title_text,
-            (
-                WIDTH // 2 - title_text.get_width() // 2,
-                HEIGHT // 3
-            )
-        )
-
-        screen.blit(
-            start_text,
-            (
-                WIDTH // 2 - start_text.get_width() // 2,
-                HEIGHT // 2
-            )
-        )
-
-        screen.blit(
-            author_text,
-            (
-                WIDTH - author_text.get_width() - 20,
-                HEIGHT - 60
-            )
-        )
-
-        screen.blit(
-            thanks_text,
-            (
-                WIDTH - thanks_text.get_width() - 20,
-                HEIGHT - 30
-            )
+        menu.draw_menu(
+            screen,
+            font,
+            big_font,
+            WIDTH,
+            HEIGHT
         )
 
         pygame.display.flip()
-
         clock.tick(60)
-
         continue
 
     if state.game_state == "level_complete":
 
-        screen.fill((0, 0, 0))
-
-        title_text = font.render(
-            f"Level {current_level} Complete!",
-            True,
-            (0, 255, 0)
-        )
-
-        score_text = font.render(
-            f"Score: {score}",
-            True,
-            (255, 255, 255)
-        )
-
-        next_level_text = font.render(
-            f"Next Level: {current_level + 1}",
-            True,
-            (255, 255, 0)
-        )
-
-        screen.blit(
-            title_text,
-            (
-                WIDTH // 2 - title_text.get_width() // 2,
-                HEIGHT // 2 - 60
-            )
-        )
-
-        screen.blit(
-            score_text,
-            (
-                WIDTH // 2 - score_text.get_width() // 2,
-                HEIGHT // 2
-            )
-        )
-
-        screen.blit(
-            next_level_text,
-            (
-                WIDTH // 2 - next_level_text.get_width() // 2,
-                HEIGHT // 2 + 60
-            )
+        level_complete.draw_level_complete(
+            screen,
+            font,
+            WIDTH,
+            HEIGHT,
+            current_level,
+            score
         )
 
         pygame.display.flip()
@@ -259,9 +168,7 @@ while running:
         if level_complete_timer <= 0:
             current_level += 1
             state.current_level = current_level
-
             reset_game(current_level)
-
             state.game_state = "playing"
 
         clock.tick(60)
@@ -271,58 +178,17 @@ while running:
         screen.fill((0, 0, 0))
 
         if not menu_music_played:
-
             sounds.menu_sound.play()
             menu_music_played = True
 
-        text = font.render(
-            "YOU WIN" if state.game_state == "win" else "YOU DIED",
-            True,
-            (0, 255, 0) if state.game_state == "win" else (255, 0, 0)
-        )
-
-        final_score_text = font.render(
-            f"Final Score: {score}",
-            True,
-            (255, 255, 255)
-        )
-
-        screen.blit(
-            final_score_text,
-            (
-                WIDTH // 2 - final_score_text.get_width() // 2,
-                HEIGHT // 2 - 20
-            )
-        )
-
-        highscore_text = font.render(
-            f"High Score: {highscore}",
-            True,
-            (255, 255, 255)
-        )
-
-        screen.blit(
-            highscore_text,
-            (
-                WIDTH // 2 - highscore_text.get_width() // 2,
-                HEIGHT // 2 + 40
-            )
-        )
-
-        screen.blit(
-            text,
-            (WIDTH // 2 - 60, HEIGHT // 3)
-        )
-
-        restart_text = font.render(
-            "Press R to Restart",
-            True,
-            (255, 255, 255)
-        )
-
-        screen.blit(
-            restart_text,
-            (WIDTH // 2 - 100, HEIGHT // 2 + 100)
+        gameover.draw_gameover(
+            screen,
+            font,
+            WIDTH,
+            HEIGHT,
+            state.game_state,
+            score,
+            highscore
         )
 
         pygame.display.flip()
@@ -364,7 +230,6 @@ while running:
                 lives -= 1
 
                 if lives <= 0:
-
                     save_highscore(score)
                     highscore = load_highscore()
                     sounds.gameover_sound.play()
@@ -381,47 +246,23 @@ while running:
     if len(state.dots) == 0:
 
         if current_level < 3:
-
             state.game_state = "level_complete"
             level_complete_timer = 180   # 3 ثانیه در 60 FPS
             sounds.levelup_sound.play()
 
         else:
-
             save_highscore(score)
             highscore = load_highscore()
             sounds.win_sound.play()
             state.game_state = "win"
 
-    text = font.render(f"Score: {score}", True, (255, 255, 255))
-    screen.blit(text, (10, 10))
-
-    level_text = font.render(
-        f"Level: {current_level}",
-        True,
-        (255, 255, 255)
-    )
-
-    screen.blit(
-        level_text,
-        (
-            WIDTH // 2 - level_text.get_width() // 2,
-            10
-        )
-    )
-
-    lives_text = font.render(
-        f"Lives: {lives}",
-        True,
-        (255, 255, 255)
-    )
-
-    screen.blit(
-        lives_text,
-        (
-            WIDTH - lives_text.get_width() - 10,
-            10
-        )
+        hud.draw_hud(
+        screen,
+        font,
+        WIDTH,
+        score,
+        current_level,
+        lives
     )
 
     pygame.display.flip()
