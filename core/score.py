@@ -1,6 +1,8 @@
 import os
 
-SCORE_FILE = "assets/highscore.txt"
+from core.resource_path import resource_path
+
+SCORE_FILE = resource_path("assets/highscore.txt")
 
 def load_highscore():
 
