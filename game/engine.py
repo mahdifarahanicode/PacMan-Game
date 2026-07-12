@@ -1,12 +1,11 @@
 import random
 import pygame
 from assets.maps import maps
-import game.state as state
 from core.config import *
 from core.levels import levels
 from game.ghosts import spawn_ghost
 
-def reset_game(level, full_reset=False):
+def reset_game(state, level, full_reset=False):
 
     if full_reset:
         state.lives = 3
@@ -42,8 +41,8 @@ def reset_game(level, full_reset=False):
 
     # spawn player
     while True:
-        x = random.randint(0, 800 - player_size)
-        y = random.randint(0, 600 - player_size)
+        x = random.randint(0, WIDTH - player_size)
+        y = random.randint(0, HEIGHT - player_size)
 
         rect = pygame.Rect(x, y, player_size, player_size)
 
@@ -56,7 +55,7 @@ def reset_game(level, full_reset=False):
     state.ghosts = []
 
     for _ in range(levels[level]["ghost_count"]):
-        g = spawn_ghost()
+        g  = spawn_ghost(state)
 
         if g:
             state.ghosts.append(g)

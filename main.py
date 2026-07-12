@@ -21,7 +21,6 @@ import screens.gameover as gameover
 import screens.hud as hud
 import screens.game_renderer as renderer
 
-
 # ================= INIT =================
 pygame.init()
 pygame.mixer.init()
@@ -33,7 +32,6 @@ big_font = pygame.font.SysFont(None, 60)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pacman Game")
 clock = pygame.time.Clock()
-
 
 # ================= MAP INIT =================
 state.map_data = maps[state.current_level - 1]
@@ -48,7 +46,6 @@ for y, row in enumerate(state.map_data):
             state.walls.append(
                 pygame.Rect(x * tile, y * tile, tile, tile)
             )
-
 
 # ================= PLAYER SPAWN =================
 def is_valid_spawn(x, y):
@@ -66,30 +63,30 @@ while True:
 state.player_x = px
 state.player_y = py
 
-
 # ================= GHOSTS =================
 state.ghosts = []
 
 for _ in range(levels[state.current_level]["ghost_count"]):
-    g = spawn_ghost()
+    g = spawn_ghost(state)
     if g:
         state.ghosts.append(g)
 
-
 # ================= DOTS =================
 state.dots.clear()
+
+dot_size = 10  # ثابت و قابل کنترل
 
 for y in range(state.rows):
     for x in range(state.cols):
         if state.map_data[y][x] == "0":
             state.dots.append(
                 pygame.Rect(
-                    x * tile + tile // 2,
-                    y * tile + tile // 2,
-                    5, 5
+                    x * tile + tile // 2 - dot_size // 2,
+                    y * tile + tile // 2 - dot_size // 2,
+                    dot_size,
+                    dot_size
                 )
             )
-
 
 # ================= UTIL =================
 def handle_movement(x, y):
@@ -113,10 +110,8 @@ def handle_movement(x, y):
 
     return nx, ny
 
-
 highscore = load_highscore()
 running = True
-
 
 # ================= GAME LOOP =================
 while running:
@@ -134,21 +129,19 @@ while running:
                     sounds.menu_sound.stop()
                     state.menu_started = False
                     state.game_state = "playing"
-                    reset_game(state.current_level)
+                    reset_game(state, state.current_level)
 
             if event.key == pygame.K_r:
                 state.game_state = "playing"
-                reset_game(state.current_level, full_reset=True)
-
+                reset_game(state, state.current_level, full_reset=True)
 
     # ---------- respawn ----------
     if state.player_state == "respawning":
         state.respawn_timer -= 1
 
         if state.respawn_timer <= 0:
-            reset_game(state.current_level)
+            reset_game(state, state.current_level)
             state.player_state = "alive"
-
 
     # ================= MENU =================
     if state.game_state == "menu":
@@ -162,7 +155,6 @@ while running:
         pygame.display.flip()
         clock.tick(60)
         continue
-
 
     # ================= LEVEL COMPLETE =================
     if state.game_state == "level_complete":
@@ -182,12 +174,11 @@ while running:
 
         if state.level_complete_timer <= 0:
             state.current_level += 1
-            reset_game(state.current_level)
+            reset_game(state, state.current_level)
             state.game_state = "playing"
 
         clock.tick(60)
         continue
-
 
     # ================= GAME OVER / WIN =================
     if state.game_state != "playing":
@@ -212,7 +203,6 @@ while running:
         clock.tick(60)
         continue
 
-
     # ================= GAME LOGIC =================
 
     state.player_x, state.player_y = handle_movement(
@@ -228,22 +218,35 @@ while running:
     )
 
     # eat dots
-    for d in state.dots[:]:
+    # eat dots (FIXED)
+    new_dots = []
+
+    for d in state.dots:
         if player_rect.colliderect(d):
-            state.dots.remove(d)
             state.score += 1
             sounds.eat_sound.play()
+        else:
+            new_dots.append(d)
 
-    move_ghosts()
+    state.dots = new_dots
+
+    move_ghosts(state)
 
 
     # collision
     if state.player_state == "alive":
         for g in state.ghosts:
 
-            if player_rect.colliderect(
-                pygame.Rect(g["x"], g["y"], ghost_size, ghost_size)
-            ):
+            ghost_rect = pygame.Rect(
+                int(g["x"]),
+                int(g["y"]),
+                ghost_size,
+                ghost_size
+            )
+
+            # کمی tolerance برای جلوگیری از miss شدن collision
+            if player_rect.colliderect(ghost_rect):
+
                 state.lives -= 1
 
                 if state.lives <= 0:
@@ -260,7 +263,6 @@ while running:
 
                 break
 
-
     # level clear
     if len(state.dots) == 0:
 
@@ -275,14 +277,11 @@ while running:
             sounds.win_sound.play()
             state.game_state = "win"
 
-
     # ================= RENDER =================
     renderer.draw_game(
         screen,
+        state,
         font,
-        state.score,
-        state.current_level,
-        state.lives,
         player_rect
     )
 

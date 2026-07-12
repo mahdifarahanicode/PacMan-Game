@@ -1,8 +1,7 @@
 import pygame
-import game.state as state
 from core.config import *
 
-def draw_game(screen, font, score, current_level, lives, player_rect):
+def draw_game(screen, state, font, player_rect):
 
     screen.fill((0, 0, 0))
 
@@ -30,11 +29,11 @@ def draw_game(screen, font, score, current_level, lives, player_rect):
     )
 
     # HUD
-    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+    score_text = font.render(f"Score: {state.score}", True, (255, 255, 255))
     screen.blit(score_text, (10, 10))
 
     level_text = font.render(
-        f"Level: {current_level}",
+        f"Level: {state.current_level}",
         True,
         (255, 255, 255)
     )
@@ -45,7 +44,7 @@ def draw_game(screen, font, score, current_level, lives, player_rect):
     )
 
     lives_text = font.render(
-        f"Lives: {lives}",
+        f"Lives: {state.lives}",
         True,
         (255, 255, 255)
     )

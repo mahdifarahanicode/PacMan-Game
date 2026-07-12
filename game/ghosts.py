@@ -1,11 +1,10 @@
 import random
-import game.state as state
 from core.config import tile, ghost_size
 from core.levels import levels
 from game.pathfinding import bfs, get_neighbors, random_neighbor
 
 
-def spawn_ghost():
+def spawn_ghost(state):
 
     map_data = state.map_data
 
@@ -34,7 +33,7 @@ def spawn_ghost():
         }
 
 
-def is_cell_occupied(cell, current_ghost):
+def is_cell_occupied(cell, current_ghost, state):
 
     for g in state.ghosts:
         if g is current_ghost:
@@ -45,8 +44,7 @@ def is_cell_occupied(cell, current_ghost):
 
     return False
 
-
-def move_ghosts():
+def move_ghosts(state):
 
     ghost_speed = 2
     map_data = state.map_data
@@ -92,10 +90,10 @@ def move_ghosts():
             next_cell = start
 
         # ---------------- جلوگیری از برخورد ----------------
-        if is_cell_occupied(next_cell, g):
+        if is_cell_occupied(next_cell, g, state):
             alternatives = [
                 n for n in get_neighbors(start, map_data)
-                if not is_cell_occupied(n, g)
+                if not is_cell_occupied(n, g, state)
             ]
 
             if alternatives:
