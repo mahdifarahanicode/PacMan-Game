@@ -266,7 +266,7 @@ while running:
     # level clear
     if len(state.dots) == 0:
 
-        if state.current_level < 3:
+        if state.current_level < len(levels):
             state.game_state = "level_complete"
             state.level_complete_timer = 180
             sounds.levelup_sound.play()

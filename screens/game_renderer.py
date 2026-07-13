@@ -1,17 +1,19 @@
 import pygame
 from core.config import *
+from core.themes import themes
 
 def draw_game(screen, state, font, player_rect):
 
-    screen.fill((0, 0, 0))
+    theme = themes[state.current_level]
+    screen.fill(theme["background"])
 
     # walls
     for w in state.walls:
-        pygame.draw.rect(screen, (0, 0, 255), w)
+        pygame.draw.rect(screen, theme["wall"], w)
 
     # dots
     for d in state.dots:
-        pygame.draw.rect(screen, (255, 255, 255), d)
+        pygame.draw.rect(screen, theme["dot"], d)
 
     # ghosts
     for g in state.ghosts:
