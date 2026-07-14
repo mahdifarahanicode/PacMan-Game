@@ -15,6 +15,7 @@ from game.ghosts import spawn_ghost, move_ghosts
 from core.levels import levels
 from core.score import load_highscore, save_highscore
 
+import screens.pause as pause
 import screens.menu as menu
 import screens.level_complete as level_complete
 import screens.gameover as gameover
@@ -28,6 +29,7 @@ sounds.init_sounds()
 
 font = pygame.font.SysFont(None, 36)
 big_font = pygame.font.SysFont(None, 60)
+small_font = pygame.font.SysFont(None, 24)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pacman Game")
@@ -116,6 +118,13 @@ running = True
 # ================= GAME LOOP =================
 while running:
 
+    player_rect = pygame.Rect(
+            state.player_x,
+            state.player_y,
+            player_size,
+            player_size
+    )
+    
     # ---------- input ----------
     for event in pygame.event.get():
 
@@ -123,6 +132,57 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
+
+            # ---------- Pause ----------
+            if event.key == pygame.K_ESCAPE:
+
+                if state.game_state == "playing":
+                    state.pause_index = 0
+                    state.game_state = "pause"
+
+                elif state.game_state == "pause":
+                    state.game_state = "playing"
+
+            if state.game_state == "pause":
+
+                if event.key == pygame.K_UP:
+
+                    state.pause_index = (
+                        state.pause_index - 1
+                    ) % len(state.pause_options)
+
+                elif event.key == pygame.K_DOWN:
+
+                    state.pause_index = (
+                        state.pause_index + 1
+                    ) % len(state.pause_options)
+
+                elif event.key == pygame.K_RETURN:
+
+                    option = state.pause_options[state.pause_index]
+
+                    if option == "Resume":
+
+                        state.game_state = "playing"
+
+                    elif option == "Restart Level":
+
+                        reset_game(
+                            state,
+                            state.current_level,
+                            reset_dots=True
+                        )
+
+                        state.game_state = "playing"
+
+                    elif option == "Main Menu":
+
+                        state.game_state = "menu"
+                        state.pause_index = 0
+
+                    elif option == "Quit":
+
+                        running = False
 
             if state.game_state == "menu":
                 if event.key == pygame.K_SPACE:
@@ -154,7 +214,14 @@ while running:
             sounds.menu_sound.play(-1)
             state.menu_started = True
 
-        menu.draw_menu(screen, font, big_font, WIDTH, HEIGHT)
+        menu.draw_menu(
+            screen,
+            font,
+            big_font,
+            small_font,
+            WIDTH,
+            HEIGHT
+        )
 
         pygame.display.flip()
         clock.tick(60)
@@ -185,7 +252,7 @@ while running:
         continue
 
     # ================= GAME OVER / WIN =================
-    if state.game_state != "playing":
+    if state.game_state in ("win", "lose"):
 
         screen.fill((0, 0, 0))
 
@@ -208,6 +275,27 @@ while running:
         continue
 
     # ================= GAME LOGIC =================
+    if state.game_state == "pause":
+
+        renderer.draw_game(
+            screen,
+            state,
+            font,
+            player_rect
+        )
+
+        pause.draw_pause(
+            screen,
+            font,
+            big_font,
+            WIDTH,
+            HEIGHT,
+            state
+        )
+
+        pygame.display.flip()
+        clock.tick(60)
+        continue
 
     state.player_x, state.player_y = handle_movement(
         state.player_x,
@@ -318,6 +406,17 @@ while running:
         font,
         player_rect
     )
+
+    if state.game_state == "pause":
+
+        pause.draw_pause(
+            screen,
+            font,
+            big_font,
+            WIDTH,
+            HEIGHT,
+            state
+        )
 
     pygame.display.flip()
     clock.tick(60)

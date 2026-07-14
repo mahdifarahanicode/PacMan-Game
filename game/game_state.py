@@ -3,7 +3,15 @@ class GameState:
     def __init__(self):
 
         # flow
-        self.game_state = "menu"   # menu / playing / win / lose / level_complete
+        self.game_state = "menu" 
+        self.pause_index = 0
+        
+        self.pause_options = [
+            "Resume",
+            "Restart Level",
+            "Main Menu",
+            "Quit"
+        ]
         self.current_level = 1
 
         # player

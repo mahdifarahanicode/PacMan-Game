@@ -7,6 +7,9 @@ from game.ghosts import spawn_ghost
 
 def reset_game(state, level, full_reset=False, reset_dots=True):
 
+    state.powered = False
+    state.power_timer = 0
+
     if full_reset:
         state.lives = 3
         state.score = 0
