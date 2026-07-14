@@ -109,7 +109,7 @@ README_FA.md
 ## 🚀 Installation
 
 ```bash
-git clone https://github.com/YourUsername/PacMan-Game.git
+git clone https://github.com/mahdifarahanicode/PacMan-Game.git
 
 cd PacMan-Game
 
