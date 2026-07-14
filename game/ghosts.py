@@ -26,6 +26,29 @@ def spawn_ghost(state):
         x = cell_x * tile + tile // 2 - ghost_size // 2
         y = cell_y * tile + tile // 2 - ghost_size // 2
 
+        player_cell = (
+            state.player_x // tile,
+            state.player_y // tile
+        )
+
+        distance = abs(cell_x - player_cell[0]) + abs(cell_y - player_cell[1])
+
+        if distance < 6:
+                    continue
+                
+        too_close = False
+
+        for g in state.ghosts:
+
+            d = abs(cell_x - g["cell_x"]) + abs(cell_y - g["cell_y"])
+
+            if d < 2:
+                too_close = True
+                break
+
+        if too_close:
+            continue
+
         return {
             "cell_x": cell_x,
             "cell_y": cell_y,

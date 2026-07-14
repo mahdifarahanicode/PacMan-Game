@@ -25,7 +25,7 @@ levels = {
     },
 
     6: {
-        "ghost_count": 5,
+        "ghost_count": 4,
         "ghost_ai": "bfs"
     }
 }

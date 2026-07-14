@@ -10,7 +10,7 @@ import core.config as config
 from game.game_state import GameState
 state = GameState()
 
-from game.engine import reset_game
+from game.engine import reset_game, new_game
 from game.ghosts import spawn_ghost, move_ghosts
 from core.levels import levels
 from core.score import load_highscore, save_highscore
@@ -33,6 +33,12 @@ small_font = pygame.font.SysFont(None, 24)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pacman Game")
+
+icon = pygame.image.load(
+    "assets/images/pacman/left_open.png"
+)
+
+pygame.display.set_icon(icon)
 
 from core.sprites import load_sprites
 
@@ -107,20 +113,55 @@ if len(state.dots) >= 2:
     for dot in random.sample(state.dots, 2):
         dot["type"] = "power"
 
+
 # ================= UTIL =================
 def handle_movement(x, y):
+
     keys = pygame.key.get_pressed()
 
     nx, ny = x, y
 
+    moving_horizontal = False
+    moving_vertical = False
+
     if keys[pygame.K_LEFT]:
         nx -= speed
+        moving_horizontal = True
+
     if keys[pygame.K_RIGHT]:
         nx += speed
+        moving_horizontal = True
+
     if keys[pygame.K_UP]:
         ny -= speed
+        moving_vertical = True
+
     if keys[pygame.K_DOWN]:
         ny += speed
+        moving_vertical = True
+
+    # ---------- Snap To Grid ----------
+    center_x = nx + player_size / 2
+    center_y = ny + player_size / 2
+
+    tile_center_x = round(center_x / tile) * tile
+    tile_center_y = round(center_y / tile) * tile
+
+    SNAP = 14
+
+    if moving_horizontal:
+
+        target_y = tile_center_y - player_size / 2
+
+        if abs(ny - target_y) < SNAP:
+            ny = target_y
+
+    elif moving_vertical:
+
+        target_x = tile_center_x - player_size / 2
+
+        if abs(nx - target_x) < SNAP:
+            nx = target_x
 
     rect = pygame.Rect(nx, ny, player_size, player_size)
 
@@ -184,11 +225,7 @@ while running:
 
                     elif option == "Restart Level":
 
-                        reset_game(
-                            state,
-                            state.current_level,
-                            reset_dots=True
-                        )
+                        new_game(state)
 
                         state.game_state = "playing"
 
@@ -206,11 +243,11 @@ while running:
                     sounds.menu_sound.stop()
                     state.menu_started = False
                     state.game_state = "playing"
-                    reset_game(state, state.current_level)
+                    new_game(state)
 
             if event.key == pygame.K_r:
                 state.game_state = "playing"
-                reset_game(state, state.current_level, full_reset=True)
+                new_game(state)
 
     # ---------- respawn ----------
     if state.player_state == "respawning":
@@ -274,7 +311,7 @@ while running:
         screen.fill((0, 0, 0))
 
         if not state.menu_music_played:
-            sounds.menu_sound.play()
+            sounds.menu_sound.play(-1)
             state.menu_music_played = True
 
         gameover.draw_gameover(

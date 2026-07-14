@@ -12,7 +12,6 @@ def load_image(path, size):
 
     return pygame.transform.scale(image, (size, size))
 
-
 PACMAN_CLOSED = None
 PACMAN_OPEN = None
 PACMAN_POWERED_CLOSED = None
@@ -22,7 +21,6 @@ RED_GHOST = None
 PURPLE_GHOST = None
 BLUE_GHOST = None
 SCARED_GHOST = None
-
 
 def load_sprites():
 

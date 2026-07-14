@@ -4,6 +4,7 @@ from assets.maps import maps
 from core.config import *
 from core.levels import levels
 from game.ghosts import spawn_ghost
+from core import sounds
 
 def reset_game(state, level, full_reset=False, reset_dots=True):
 
@@ -78,3 +79,30 @@ def reset_game(state, level, full_reset=False, reset_dots=True):
 
         if g:
             state.ghosts.append(g)
+
+def new_game(state):
+
+    sounds.menu_sound.stop()
+    state.current_level = 1
+
+    state.score = 0
+    state.lives = 3
+
+    state.player_state = "alive"
+
+    state.powered = False
+    state.power_timer = 0
+
+    state.level_complete_timer = 0
+
+    state.menu_started = False
+    state.menu_music_played = False
+
+    reset_game(
+        state,
+        1,
+        full_reset=True,
+        reset_dots=True
+    )
+
+    state.menu_started = False
