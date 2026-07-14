@@ -58,7 +58,7 @@ This project was created as a personal learning project focusing on:
 
 ### Main Menu
 
-![](docs/screenshots/menu.png)
+![](docs/screenshots/menupage.png)
 
 ---
 
