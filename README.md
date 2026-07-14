@@ -76,7 +76,7 @@ This project was created as a personal learning project focusing on:
 
 ### Victory
 
-![](docs/screenshots/win.png)
+![](docs/screenshots/winner.png)
 
 ---
 

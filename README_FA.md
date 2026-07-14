@@ -58,7 +58,7 @@
 
 ### صفحه برد
 
-![](docs/screenshots/win.png)
+![](docs/screenshots/winner.png)
 
 ---
 
