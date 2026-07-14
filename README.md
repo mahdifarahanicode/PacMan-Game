@@ -62,12 +62,6 @@ This project was created as a personal learning project focusing on:
 
 ---
 
-### Gameplay
-
-![](docs/screenshots/level1.png)
-
----
-
 ### Power Mode
 
 ![](docs/screenshots/power_mode.png)
