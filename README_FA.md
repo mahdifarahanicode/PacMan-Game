@@ -48,10 +48,6 @@
 
 ![](docs/screenshots/menu.png)
 
-### محیط بازی
-
-![](docs/screenshots/level1.png)
-
 ### حالت Power
 
 ![](docs/screenshots/power_mode.png)
