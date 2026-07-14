@@ -34,6 +34,7 @@ def spawn_ghost(state):
             "moving": False,
             "target_x": x,
             "target_y": y,
+            "sprite": random.choice(["red", "purple", "blue"]),
             "last_cell": None
         }
 

@@ -1,6 +1,7 @@
 import pygame
 from core.config import *
 from core.themes import themes
+import core.sprites as sprites
 
 def draw_game(screen, state, font, player_rect):
 
@@ -38,29 +39,59 @@ def draw_game(screen, state, font, player_rect):
         )
 
     # ghosts
-    ghost_color = (255, 0, 0)
-
-    if state.powered:
-        ghost_color = (50, 100, 255)
-
     for g in state.ghosts:
-        pygame.draw.rect(
-            screen,
-            ghost_color,
-            (g["x"], g["y"], ghost_size, ghost_size)
+
+        if state.powered:
+
+            image = sprites.SCARED_GHOST
+
+        else:
+
+            if g["sprite"] == "red":
+                image = sprites.RED_GHOST
+
+            elif g["sprite"] == "purple":
+                image = sprites.PURPLE_GHOST
+
+            else:
+                image = sprites.BLUE_GHOST
+
+        screen.blit(
+            image,
+            (g["x"], g["y"])
         )
 
-    # player
-    player_color = (255, 255, 0)
+    # player animation
+    frame = (pygame.time.get_ticks() // 150) % 2
 
     if state.powered:
-        player_color = (255, 120, 255)
 
-    pygame.draw.rect(
-        screen,
-        player_color,
-        player_rect
-    )
+        if frame == 0:
+            image = sprites.PACMAN_POWERED_CLOSED
+        else:
+            image = sprites.PACMAN_POWERED_OPEN
+
+    else:
+
+        if frame == 0:
+            image = sprites.PACMAN_CLOSED
+        else:
+            image = sprites.PACMAN_OPEN
+
+
+    # Rotate / Flip based on movement direction
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_RIGHT]:
+        image = pygame.transform.flip(image, True, False)
+
+    elif keys[pygame.K_UP]:
+        image = pygame.transform.rotate(image, -90)
+
+    elif keys[pygame.K_DOWN]:
+        image = pygame.transform.rotate(image, 90)
+
+    screen.blit(image, player_rect)
 
     # HUD
     score_text = font.render(f"Score: {state.score}", True, (255, 255, 255))

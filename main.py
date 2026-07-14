@@ -33,6 +33,11 @@ small_font = pygame.font.SysFont(None, 24)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pacman Game")
+
+from core.sprites import load_sprites
+
+load_sprites()
+
 clock = pygame.time.Clock()
 
 # ================= MAP INIT =================
@@ -76,19 +81,31 @@ for _ in range(levels[state.current_level]["ghost_count"]):
 # ================= DOTS =================
 state.dots.clear()
 
-dot_size = 10  # ثابت و قابل کنترل
+dot_size = 10
 
 for y in range(state.rows):
     for x in range(state.cols):
+
         if state.map_data[y][x] == "0":
-            state.dots.append(
-                pygame.Rect(
+
+            state.dots.append({
+
+                "rect": pygame.Rect(
                     x * tile + tile // 2 - dot_size // 2,
                     y * tile + tile // 2 - dot_size // 2,
                     dot_size,
                     dot_size
-                )
-            )
+                ),
+
+                "type": "normal"
+
+            })
+
+# انتخاب دو پاور دات
+if len(state.dots) >= 2:
+
+    for dot in random.sample(state.dots, 2):
+        dot["type"] = "power"
 
 # ================= UTIL =================
 def handle_movement(x, y):
@@ -406,7 +423,7 @@ while running:
         font,
         player_rect
     )
-
+        
     if state.game_state == "pause":
 
         pause.draw_pause(
