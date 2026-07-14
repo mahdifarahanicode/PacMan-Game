@@ -46,7 +46,7 @@
 
 ### منوی اصلی
 
-![](docs/screenshots/menu.png)
+![](docs/screenshots/menupage.png)
 
 ### حالت Power
 
