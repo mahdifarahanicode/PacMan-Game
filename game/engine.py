@@ -5,7 +5,7 @@ from core.config import *
 from core.levels import levels
 from game.ghosts import spawn_ghost
 
-def reset_game(state, level, full_reset=False):
+def reset_game(state, level, full_reset=False, reset_dots=True):
 
     if full_reset:
         state.lives = 3
@@ -24,20 +24,36 @@ def reset_game(state, level, full_reset=False):
                 state.walls.append(pygame.Rect(x * tile, y * tile, tile, tile))
 
     # rebuild dots
-    state.dots = []
+    if reset_dots:
 
-    for y in range(state.rows):
-        for x in range(state.cols):
-            if state.map_data[y][x] == "0":
-                state.dots.append(
-                    pygame.Rect(
-                        x * tile + tile // 2,
-                        y * tile + tile // 2,
-                        5, 5
-                    )
-                )
-    
-    
+        state.dots = []
+
+        dot_size = 10
+
+        for y in range(state.rows):
+            for x in range(state.cols):
+
+                if state.map_data[y][x] == "0":
+
+                    state.dots.append({
+
+                        "rect": pygame.Rect(
+                            x * tile + tile // 2 - dot_size // 2,
+                            y * tile + tile // 2 - dot_size // 2,
+                            dot_size,
+                            dot_size
+                        ),
+
+                        "type": "normal"
+
+                    })
+
+        if len(state.dots) >= 2:
+
+            power_dots = random.sample(state.dots, 2)
+
+            for dot in power_dots:
+                dot["type"] = "power"
 
     # spawn player
     while True:

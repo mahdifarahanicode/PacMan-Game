@@ -140,7 +140,11 @@ while running:
         state.respawn_timer -= 1
 
         if state.respawn_timer <= 0:
-            reset_game(state, state.current_level)
+            reset_game(
+                state,
+                state.current_level,
+                reset_dots=False
+            )
             state.player_state = "alive"
 
     # ================= MENU =================
@@ -222,19 +226,34 @@ while running:
     new_dots = []
 
     for d in state.dots:
-        if player_rect.colliderect(d):
+
+        if player_rect.colliderect(d["rect"]):
+
             state.score += 1
             sounds.eat_sound.play()
+
+            if d["type"] == "power":
+                state.powered = True
+                state.power_timer = pygame.time.get_ticks() + POWER_DURATION
+
         else:
+
             new_dots.append(d)
 
     state.dots = new_dots
+
+    # 5 second power    
+    if state.powered and pygame.time.get_ticks() >= state.power_timer:
+        state.powered = False
 
     move_ghosts(state)
 
 
     # collision
     if state.player_state == "alive":
+
+        remaining_ghosts = []
+
         for g in state.ghosts:
 
             ghost_rect = pygame.Rect(
@@ -244,24 +263,39 @@ while running:
                 ghost_size
             )
 
-            # کمی tolerance برای جلوگیری از miss شدن collision
             if player_rect.colliderect(ghost_rect):
 
-                state.lives -= 1
+                # Pac-Man powered -> Ghost eaten
+                if state.powered:
 
-                if state.lives <= 0:
-                    save_highscore(state.score)
-                    highscore = load_highscore()
-                    sounds.gameover_sound.play()
-                    state.game_state = "lose"
-                    state.player_state = "dead"
+                    state.score += 200
+                    sounds.eat_sound.play()
 
+                    # Ghost حذف می‌شود
+                    continue
+
+                # Ghost kills player
                 else:
-                    sounds.respawn_sound.play()
-                    state.player_state = "respawning"
-                    state.respawn_timer = 60
 
-                break
+                    state.lives -= 1
+
+                    if state.lives <= 0:
+                        save_highscore(state.score)
+                        highscore = load_highscore()
+                        sounds.gameover_sound.play()
+                        state.game_state = "lose"
+                        state.player_state = "dead"
+
+                    else:
+                        sounds.respawn_sound.play()
+                        state.player_state = "respawning"
+                        state.respawn_timer = 60
+
+                    break
+
+            remaining_ghosts.append(g)
+
+        state.ghosts = remaining_ghosts
 
     # level clear
     if len(state.dots) == 0:

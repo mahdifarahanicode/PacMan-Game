@@ -1,7 +1,12 @@
 import random
+
 from core.config import tile, ghost_size
 from core.levels import levels
-from game.pathfinding import bfs, get_neighbors, random_neighbor
+from game.pathfinding import (
+    bfs,
+    get_neighbors,
+    random_neighbor,
+)
 
 
 def spawn_ghost(state):
@@ -72,22 +77,42 @@ def move_ghosts(state):
 
         ai = levels[state.current_level]["ghost_ai"]
 
-        if ai == "random":
-            next_cell = random_neighbor(start, g["last_cell"], map_data)
+        # ---------- Powered Mode ----------
+        if state.powered:
 
-        elif ai == "mixed":
-            if random.random() < 0.25:
-                path = bfs(start, player_cell, map_data)
-                next_cell = path[0] if path else start
+            neighbors = get_neighbors(start, map_data)
+
+            if g["last_cell"] is not None:
+                filtered = [n for n in neighbors if n != g["last_cell"]]
+                if filtered:
+                    neighbors = filtered
+
+            if neighbors:
+                next_cell = max(
+                    neighbors,
+                    key=lambda c: abs(c[0] - player_cell[0]) + abs(c[1] - player_cell[1])
+                )
             else:
+                next_cell = start
+
+        if not state.powered:
+
+            if ai == "random":
                 next_cell = random_neighbor(start, g["last_cell"], map_data)
 
-        elif ai == "bfs":
-            path = bfs(start, player_cell, map_data)
-            next_cell = path[0] if path else start
+            elif ai == "mixed":
+                if random.random() < 0.25:
+                    path = bfs(start, player_cell, map_data)
+                    next_cell = path[0] if path else start
+                else:
+                    next_cell = random_neighbor(start, g["last_cell"], map_data)
 
-        else:
-            next_cell = start
+            elif ai == "bfs":
+                path = bfs(start, player_cell, map_data)
+                next_cell = path[0] if path else start
+
+            else:
+                next_cell = start
 
         # ---------------- جلوگیری از برخورد ----------------
         if is_cell_occupied(next_cell, g, state):

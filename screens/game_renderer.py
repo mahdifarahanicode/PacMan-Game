@@ -11,22 +11,54 @@ def draw_game(screen, state, font, player_rect):
     for w in state.walls:
         pygame.draw.rect(screen, theme["wall"], w)
 
-    # dots
     for d in state.dots:
-        pygame.draw.rect(screen, theme["dot"], d)
+
+        if d["type"] == "normal":
+
+            pygame.draw.rect(
+                screen,
+                theme["dot"],
+                d["rect"]
+            )
+
+        else:
+
+            pygame.draw.circle(
+            screen,
+            (255,120,255),
+            d["rect"].center,
+            9
+        )
+
+            pygame.draw.circle(
+                screen,
+                (255,255,255),
+                d["rect"].center,
+                3
+        )
 
     # ghosts
+    ghost_color = (255, 0, 0)
+
+    if state.powered:
+        ghost_color = (50, 100, 255)
+
     for g in state.ghosts:
         pygame.draw.rect(
             screen,
-            (255, 0, 0),
+            ghost_color,
             (g["x"], g["y"], ghost_size, ghost_size)
         )
 
     # player
+    player_color = (255, 255, 0)
+
+    if state.powered:
+        player_color = (255, 120, 255)
+
     pygame.draw.rect(
         screen,
-        (255, 255, 0),
+        player_color,
         player_rect
     )
 

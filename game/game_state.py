@@ -15,6 +15,8 @@ class GameState:
         # stats
         self.score = 0
         self.lives = 3
+        self.powered = False
+        self.power_timer = 0
 
         # world
         self.map_data = None
