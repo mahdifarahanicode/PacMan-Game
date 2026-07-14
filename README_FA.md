@@ -46,11 +46,7 @@
 
 ### منوی اصلی
 
-![](docs/screenshots/menu.png)
-
-### محیط بازی
-
-![](docs/screenshots/level1.png)
+![](docs/screenshots/menupage.png)
 
 ### حالت Power
 

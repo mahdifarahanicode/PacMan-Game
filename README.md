@@ -58,13 +58,7 @@ This project was created as a personal learning project focusing on:
 
 ### Main Menu
 
-![](docs/screenshots/menu.png)
-
----
-
-### Gameplay
-
-![](docs/screenshots/level1.png)
+![](docs/screenshots/menupage.png)
 
 ---
 
