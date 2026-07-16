@@ -123,17 +123,6 @@ python main.py
 
 ---
 
-## 🔮 Future Improvements
-
-- Animated Sprites
-- Teleport Tunnels
-- Fruit Bonus System
-- Better Ghost Behaviors
-- Settings Menu
-- More Maps
-
----
-
 ## 👨‍💻 Author
 
 **Mahdi Farahani**
