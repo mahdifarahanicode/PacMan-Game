@@ -4,7 +4,8 @@ import sys
 
 def resource_path(relative_path):
     """
-    مسیر فایل‌های داخل برنامه (تصاویر، صداها و ...)
+    Return the absolute path to bundled resources.
+    Works both in development and in a PyInstaller executable.
     """
     try:
         base_path = sys._MEIPASS
@@ -16,9 +17,10 @@ def resource_path(relative_path):
 
 def get_data_folder():
     """
-    محل ذخیره اطلاعات کاربر
+    Return the application's writable data folder.
+
     Windows:
-        C:\Users\<User>\AppData\Local\PacMan
+        %LOCALAPPDATA%/PacMan
     """
 
     if sys.platform.startswith("win"):
@@ -38,10 +40,16 @@ def get_data_folder():
 
 
 def data_path(relative_path=""):
+    """
+    Build an absolute path inside the application's data folder.
+    """
 
     return os.path.join(get_data_folder(), relative_path)
 
 
 def ensure_directories():
+    """
+    Create required folders on first launch.
+    """
 
     os.makedirs(data_path("logs"), exist_ok=True)
