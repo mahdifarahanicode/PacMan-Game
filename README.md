@@ -20,6 +20,15 @@
 <img src="docs/screenshots/gameplay.gif" width="800">
 </p>
 
+## Gameplay
+
+Classic arcade gameplay inspired by Pac-Man.
+
+Collect all dots while avoiding ghosts.
+Power Pellets allow Pac-Man to eat ghosts for a limited time.
+
+Difficulty increases across six progressively harder levels.
+
 ## 🎮 About
 
 A modern Pac-Man clone developed with **Python** and **Pygame**.

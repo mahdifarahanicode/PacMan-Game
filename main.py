@@ -19,11 +19,12 @@ import screens.pause as pause
 import screens.menu as menu
 import screens.level_complete as level_complete
 import screens.gameover as gameover
-import screens.hud as hud
 import screens.game_renderer as renderer
-
+from core.resource_path import ensure_directories
+from core.resource_path import resource_path
 # ================= INIT =================
 pygame.init()
+ensure_directories()
 pygame.mixer.init()
 sounds.init_sounds()
 
@@ -35,7 +36,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pacman Game")
 
 icon = pygame.image.load(
-    "assets/images/pacman/left_open.png"
+    resource_path("assets/images/pacman/left_open.png")
 )
 
 pygame.display.set_icon(icon)
@@ -174,163 +175,294 @@ highscore = load_highscore()
 running = True
 
 # ================= GAME LOOP =================
-while running:
 
-    player_rect = pygame.Rect(
+try:
+
+    while running:
+
+        player_rect = pygame.Rect(
+                state.player_x,
+                state.player_y,
+                player_size,
+                player_size
+        )
+        
+        # ---------- input ----------
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.KEYDOWN:
+
+                # ---------- Pause ----------
+                if event.key == pygame.K_ESCAPE:
+
+                    if state.game_state == "playing":
+                        state.pause_index = 0
+                        state.game_state = "pause"
+
+                    elif state.game_state == "pause":
+                        state.game_state = "playing"
+
+                if state.game_state == "pause":
+
+                    if event.key == pygame.K_UP:
+
+                        state.pause_index = (
+                            state.pause_index - 1
+                        ) % len(state.pause_options)
+
+                    elif event.key == pygame.K_DOWN:
+
+                        state.pause_index = (
+                            state.pause_index + 1
+                        ) % len(state.pause_options)
+
+                    elif event.key == pygame.K_RETURN:
+
+                        option = state.pause_options[state.pause_index]
+
+                        if option == "Resume":
+
+                            state.game_state = "playing"
+
+                        elif option == "Restart Level":
+
+                            new_game(state)
+
+                            state.game_state = "playing"
+
+                        elif option == "Main Menu":
+
+                            state.game_state = "menu"
+                            state.pause_index = 0
+
+                        elif option == "Quit":
+
+                            running = False
+
+                if state.game_state == "menu":
+                    if event.key == pygame.K_SPACE:
+                        sounds.menu_sound.stop()
+                        state.menu_started = False
+                        state.game_state = "playing"
+                        new_game(state)
+
+                if event.key == pygame.K_r:
+                    state.game_state = "playing"
+                    new_game(state)
+
+        # ---------- respawn ----------
+        if state.player_state == "respawning":
+            state.respawn_timer -= 1
+
+            if state.respawn_timer <= 0:
+                reset_game(
+                    state,
+                    state.current_level,
+                    reset_dots=False
+                )
+                state.player_state = "alive"
+
+        # ================= MENU =================
+        if state.game_state == "menu":
+
+            if not state.menu_started:
+                sounds.menu_sound.play(-1)
+                state.menu_started = True
+
+            menu.draw_menu(
+                screen,
+                font,
+                big_font,
+                small_font,
+                WIDTH,
+                HEIGHT
+            )
+
+            pygame.display.flip()
+            clock.tick(60)
+            continue
+
+        # ================= LEVEL COMPLETE =================
+        if state.game_state == "level_complete":
+
+            level_complete.draw_level_complete(
+                screen,
+                font,
+                WIDTH,
+                HEIGHT,
+                state.current_level,
+                state.score
+            )
+
+            pygame.display.flip()
+
+            state.level_complete_timer -= 1
+
+            if state.level_complete_timer <= 0:
+                state.current_level += 1
+                reset_game(state, state.current_level)
+                state.game_state = "playing"
+
+            clock.tick(60)
+            continue
+
+        # ================= GAME OVER / WIN =================
+        if state.game_state in ("win", "lose"):
+
+            screen.fill((0, 0, 0))
+
+            if not state.menu_music_played:
+                sounds.menu_sound.play(-1)
+                state.menu_music_played = True
+
+            gameover.draw_gameover(
+                screen,
+                font,
+                WIDTH,
+                HEIGHT,
+                state.game_state,
+                state.score,
+                highscore
+            )
+
+            pygame.display.flip()
+            clock.tick(60)
+            continue
+
+        # ================= PAUSE =================
+        if state.game_state == "pause":
+
+            renderer.draw_game(
+                screen,
+                state,
+                font,
+                player_rect
+            )
+
+            pause.draw_pause(
+                screen,
+                font,
+                big_font,
+                WIDTH,
+                HEIGHT,
+                state
+            )
+
+            pygame.display.flip()
+            clock.tick(60)
+            continue
+
+        # ================= GAME LOGIC =================
+
+        state.player_x, state.player_y = handle_movement(
+            state.player_x,
+            state.player_y
+        )
+
+        player_rect = pygame.Rect(
             state.player_x,
             state.player_y,
             player_size,
             player_size
-    )
-    
-    # ---------- input ----------
-    for event in pygame.event.get():
-
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.KEYDOWN:
-
-            # ---------- Pause ----------
-            if event.key == pygame.K_ESCAPE:
-
-                if state.game_state == "playing":
-                    state.pause_index = 0
-                    state.game_state = "pause"
-
-                elif state.game_state == "pause":
-                    state.game_state = "playing"
-
-            if state.game_state == "pause":
-
-                if event.key == pygame.K_UP:
-
-                    state.pause_index = (
-                        state.pause_index - 1
-                    ) % len(state.pause_options)
-
-                elif event.key == pygame.K_DOWN:
-
-                    state.pause_index = (
-                        state.pause_index + 1
-                    ) % len(state.pause_options)
-
-                elif event.key == pygame.K_RETURN:
-
-                    option = state.pause_options[state.pause_index]
-
-                    if option == "Resume":
-
-                        state.game_state = "playing"
-
-                    elif option == "Restart Level":
-
-                        new_game(state)
-
-                        state.game_state = "playing"
-
-                    elif option == "Main Menu":
-
-                        state.game_state = "menu"
-                        state.pause_index = 0
-
-                    elif option == "Quit":
-
-                        running = False
-
-            if state.game_state == "menu":
-                if event.key == pygame.K_SPACE:
-                    sounds.menu_sound.stop()
-                    state.menu_started = False
-                    state.game_state = "playing"
-                    new_game(state)
-
-            if event.key == pygame.K_r:
-                state.game_state = "playing"
-                new_game(state)
-
-    # ---------- respawn ----------
-    if state.player_state == "respawning":
-        state.respawn_timer -= 1
-
-        if state.respawn_timer <= 0:
-            reset_game(
-                state,
-                state.current_level,
-                reset_dots=False
-            )
-            state.player_state = "alive"
-
-    # ================= MENU =================
-    if state.game_state == "menu":
-
-        if not state.menu_started:
-            sounds.menu_sound.play(-1)
-            state.menu_started = True
-
-        menu.draw_menu(
-            screen,
-            font,
-            big_font,
-            small_font,
-            WIDTH,
-            HEIGHT
         )
 
-        pygame.display.flip()
-        clock.tick(60)
-        continue
+        new_dots = []
 
-    # ================= LEVEL COMPLETE =================
-    if state.game_state == "level_complete":
+        for d in state.dots:
 
-        level_complete.draw_level_complete(
-            screen,
-            font,
-            WIDTH,
-            HEIGHT,
-            state.current_level,
-            state.score
-        )
+            if player_rect.colliderect(d["rect"]):
 
-        pygame.display.flip()
+                state.score += 1
+                sounds.eat_sound.play()
 
-        state.level_complete_timer -= 1
+                if d["type"] == "power":
+                    state.powered = True
+                    state.power_timer = pygame.time.get_ticks() + POWER_DURATION
 
-        if state.level_complete_timer <= 0:
-            state.current_level += 1
-            reset_game(state, state.current_level)
-            state.game_state = "playing"
+            else:
+                new_dots.append(d)
 
-        clock.tick(60)
-        continue
+        state.dots = new_dots
 
-    # ================= GAME OVER / WIN =================
-    if state.game_state in ("win", "lose"):
+        if (
+            state.powered and
+            pygame.time.get_ticks() >= state.power_timer
+        ):
+            state.powered = False
 
-        screen.fill((0, 0, 0))
+        move_ghosts(state)
 
-        if not state.menu_music_played:
-            sounds.menu_sound.play(-1)
-            state.menu_music_played = True
+        # ================= COLLISION =================
+        if state.player_state == "alive":
 
-        gameover.draw_gameover(
-            screen,
-            font,
-            WIDTH,
-            HEIGHT,
-            state.game_state,
-            state.score,
-            highscore
-        )
+            remaining_ghosts = []
 
-        pygame.display.flip()
-        clock.tick(60)
-        continue
+            for g in state.ghosts:
 
-    # ================= GAME LOGIC =================
-    if state.game_state == "pause":
+                ghost_rect = pygame.Rect(
+                    int(g["x"]),
+                    int(g["y"]),
+                    ghost_size,
+                    ghost_size
+                )
 
+                if player_rect.colliderect(ghost_rect):
+
+                    if state.powered:
+
+                        state.score += 200
+                        sounds.eat_sound.play()
+                        continue
+
+                    else:
+
+                        state.lives -= 1
+
+                        if state.lives <= 0:
+
+                            save_highscore(state.score)
+                            highscore = load_highscore()
+
+                            sounds.gameover_sound.play()
+
+                            state.game_state = "lose"
+                            state.player_state = "dead"
+
+                        else:
+
+                            sounds.respawn_sound.play()
+
+                            state.player_state = "respawning"
+                            state.respawn_timer = 60
+
+                        break
+
+                remaining_ghosts.append(g)
+
+            state.ghosts = remaining_ghosts
+
+        # ================= LEVEL CLEAR =================
+        if len(state.dots) == 0:
+
+            if state.current_level < len(levels):
+
+                state.game_state = "level_complete"
+                state.level_complete_timer = 180
+                sounds.levelup_sound.play()
+
+            else:
+
+                save_highscore(state.score)
+                highscore = load_highscore()
+
+                sounds.win_sound.play()
+
+                state.game_state = "win"
+
+        # ================= RENDER =================
         renderer.draw_game(
             screen,
             state,
@@ -338,143 +470,26 @@ while running:
             player_rect
         )
 
-        pause.draw_pause(
-            screen,
-            font,
-            big_font,
-            WIDTH,
-            HEIGHT,
-            state
-        )
+        if state.game_state == "pause":
+
+            pause.draw_pause(
+                screen,
+                font,
+                big_font,
+                WIDTH,
+                HEIGHT,
+                state
+            )
 
         pygame.display.flip()
         clock.tick(60)
-        continue
 
-    state.player_x, state.player_y = handle_movement(
-        state.player_x,
-        state.player_y
-    )
+except Exception as e:
 
-    player_rect = pygame.Rect(
-        state.player_x,
-        state.player_y,
-        player_size,
-        player_size
-    )
+    from core.logger import log_exception
 
-    # eat dots
-    # eat dots (FIXED)
-    new_dots = []
+    log_exception(e)
 
-    for d in state.dots:
-
-        if player_rect.colliderect(d["rect"]):
-
-            state.score += 1
-            sounds.eat_sound.play()
-
-            if d["type"] == "power":
-                state.powered = True
-                state.power_timer = pygame.time.get_ticks() + POWER_DURATION
-
-        else:
-
-            new_dots.append(d)
-
-    state.dots = new_dots
-
-    # 5 second power    
-    if state.powered and pygame.time.get_ticks() >= state.power_timer:
-        state.powered = False
-
-    move_ghosts(state)
-
-
-    # collision
-    if state.player_state == "alive":
-
-        remaining_ghosts = []
-
-        for g in state.ghosts:
-
-            ghost_rect = pygame.Rect(
-                int(g["x"]),
-                int(g["y"]),
-                ghost_size,
-                ghost_size
-            )
-
-            if player_rect.colliderect(ghost_rect):
-
-                # Pac-Man powered -> Ghost eaten
-                if state.powered:
-
-                    state.score += 200
-                    sounds.eat_sound.play()
-
-                    # Ghost حذف می‌شود
-                    continue
-
-                # Ghost kills player
-                else:
-
-                    state.lives -= 1
-
-                    if state.lives <= 0:
-                        save_highscore(state.score)
-                        highscore = load_highscore()
-                        sounds.gameover_sound.play()
-                        state.game_state = "lose"
-                        state.player_state = "dead"
-
-                    else:
-                        sounds.respawn_sound.play()
-                        state.player_state = "respawning"
-                        state.respawn_timer = 60
-
-                    break
-
-            remaining_ghosts.append(g)
-
-        state.ghosts = remaining_ghosts
-
-    # level clear
-    if len(state.dots) == 0:
-
-        if state.current_level < len(levels):
-            state.game_state = "level_complete"
-            state.level_complete_timer = 180
-            sounds.levelup_sound.play()
-
-        else:
-            save_highscore(state.score)
-            highscore = load_highscore()
-            sounds.win_sound.play()
-            state.game_state = "win"
-
-    # ================= RENDER =================
-    renderer.draw_game(
-        screen,
-        state,
-        font,
-        player_rect
-    )
-        
-    if state.game_state == "pause":
-
-        pause.draw_pause(
-            screen,
-            font,
-            big_font,
-            WIDTH,
-            HEIGHT,
-            state
-        )
-
-    pygame.display.flip()
-    clock.tick(60)
-
-
+    raise
 pygame.quit()
 sys.exit()
