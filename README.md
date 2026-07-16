@@ -1,4 +1,4 @@
-# 🟡 Pac-Man Game
+# 🟡 PacMan Game
 
 <p align="center">
   <a href="./README_FA.md">🇮🇷 فارسی</a> •
@@ -20,46 +20,51 @@
 <img src="docs/screenshots/gameplay.gif" width="800">
 </p>
 
-## Gameplay
+## 🎮 Gameplay
 
-Classic arcade gameplay inspired by Pac-Man.
+Navigate through the maze, collect every dot, and avoid the ghosts.
 
-Collect all dots while avoiding ghosts.
-Power Pellets allow Pac-Man to eat ghosts for a limited time.
+Power Pellets temporarily turn the tables, allowing Pac-Man to eat ghosts for bonus points before the effect wears off.
 
-Difficulty increases across six progressively harder levels.
+As you progress through six levels, both the number of ghosts and their AI become increasingly challenging.
 
-## 🎮 About
+---
 
-A modern Pac-Man clone developed with **Python** and **Pygame**.
+## 📖 About
 
-The project recreates the classic arcade experience while adding progressive difficulty, multiple AI behaviors, power pellets, custom sprites, sound effects, and colorful themes.
+**PacMan** is a modern recreation of the classic arcade game built with **Python** and **Pygame**.
 
-This project was created as a personal learning project focusing on:
+In addition to recreating the original gameplay, this project introduces progressive difficulty, multiple ghost AI behaviors, power pellets, pixel-art sprites, sound effects, colorful themes, and a clean modular architecture.
 
-- Object-Oriented Programming
-- Game Programming
-- Artificial Intelligence
-- Pathfinding Algorithms (BFS)
-- Clean Project Structure
+The project was developed as a personal learning project focused on:
+
+* Object-Oriented Programming (OOP)
+* Game Development with Pygame
+* Artificial Intelligence
+* BFS Pathfinding
+* Modular Software Architecture
+* Resource & Asset Management
 
 ---
 
 ## ✨ Features
 
-- 6 Progressive Levels
-- Three Ghost AI Systems
-  - Random
-  - Mixed
-  - BFS Pathfinding
-- Power Pellets
-- Multiple Color Themes
-- Pixel Art Sprites
-- Smooth Grid Movement
-- Pause Menu
-- High Score Saving
-- Sound Effects
-- Game Over & Victory Screens
+* 6 progressively challenging levels
+* Three ghost AI systems
+
+  * Random Movement
+  * Mixed AI
+  * BFS Pathfinding
+* Power Pellets
+* Pixel-Art Sprites
+* Dynamic Color Themes
+* Smooth Grid-Based Movement
+* Pause Menu
+* High Score Saving
+* Automatic Save Folder Creation
+* Standalone Windows Executable (.exe)
+* Sound Effects & Background Music
+* Victory & Game Over Screens
 
 ---
 
@@ -77,7 +82,7 @@ This project was created as a personal learning project focusing on:
 
 ---
 
-### Victory
+### Victory Screen
 
 ![](docs/screenshots/winner.png)
 
@@ -85,12 +90,23 @@ This project was created as a personal learning project focusing on:
 
 ## 🎮 Controls
 
-| Key | Action |
-|------|--------|
-| Arrow Keys | Move |
-| ESC | Pause |
-| SPACE | Start Game |
-| R | Restart |
+| Key        | Action     |
+| ---------- | ---------- |
+| Arrow Keys | Move       |
+| ESC        | Pause      |
+| SPACE      | Start Game |
+| R          | Restart    |
+
+---
+
+## 🛠 Technologies
+
+* Python 3.11
+* Pygame 2.6
+* Breadth-First Search (BFS)
+* Object-Oriented Programming
+* Pixel Art
+* Windows Executable Packaging (PyInstaller)
 
 ---
 
@@ -105,21 +121,52 @@ docs/
 main.py
 README.md
 README_FA.md
+LICENSE
 ```
 
 ---
 
 ## 🚀 Installation
 
+Clone the repository:
+
 ```bash
 git clone https://github.com/mahdifarahanicode/PacMan-Game.git
-
 cd PacMan-Game
+```
 
+Install the dependency:
+
+```bash
 pip install pygame
+```
 
+Run the game:
+
+```bash
 python main.py
 ```
+
+Or simply download the latest standalone executable from the **Releases** section.
+
+---
+
+## 💾 Save Data
+
+The game automatically creates its save folder on the first launch.
+
+On Windows, game data is stored in:
+
+```text
+%LOCALAPPDATA%/PacMan/
+```
+
+This folder contains:
+
+* High Score
+* Crash Logs
+
+No additional setup is required.
 
 ---
 
@@ -127,4 +174,8 @@ python main.py
 
 **Mahdi Farahani**
 
-Made with ❤️ using Python & Pygame.
+Computer Engineering Student
+
+Built with **Python** and **Pygame** as a personal game development project.
+
+If you enjoyed this project, consider leaving a ⭐ on the repository.
